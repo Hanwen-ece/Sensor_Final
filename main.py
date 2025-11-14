@@ -5,6 +5,7 @@ import copy
 import argparse
 import itertools
 from collections import deque
+from light_analyzer import LightAnalyzer
 
 import cv2 as cv
 import numpy as np
@@ -31,6 +32,8 @@ def main():
     cap = cv.VideoCapture(args.device)
     cap.set(cv.CAP_PROP_FRAME_WIDTH, args.width)
     cap.set(cv.CAP_PROP_FRAME_HEIGHT, args.height)
+
+    analyzer = LightAnalyzer()
 
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(
@@ -59,6 +62,10 @@ def main():
         ret, image = cap.read()
         if not ret:
             break
+
+        # result = analyzer.analyze(image)
+
+        # print(result)
         image = cv.flip(image, 1)
         debug_image = copy.deepcopy(image)
 
@@ -66,6 +73,9 @@ def main():
         image_rgb.flags.writeable = False
         results = hands.process(image_rgb)
         image_rgb.flags.writeable = True
+
+        result, frame_with_overlay = analyzer.analyze(debug_image, overlay=True)
+        cv.imshow("Camera with Light Info", frame_with_overlay)
 
         if results.multi_hand_landmarks is not None:
             for hand_landmarks, handedness in zip(results.multi_hand_landmarks,
